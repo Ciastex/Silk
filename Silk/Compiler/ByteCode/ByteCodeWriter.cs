@@ -1,56 +1,11 @@
-﻿// Copyright (c) 2019-2020 Jonathan Wood (www.softcircuits.com)
-// Licensed under the MIT license.
-//
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 
-namespace SoftCircuits.Silk
+namespace Silk.Compiler.ByteCode
 {
-    /// <summary>
-    /// Represents a bytecode entry. Additional properties used primarily for
-    /// creating bytecode log file, and for extracting line numbers for
-    /// runtime.
-    /// </summary>
-    internal class ByteCodeEntry
-    {
-        public int Value { get; set; }
-        public bool IsBytecode { get; set; }
-        public int Line { get; set; }
-
-        public ByteCodeEntry(ByteCode bytecode, int line)
-        {
-            Value = (int)bytecode;
-            IsBytecode = true;
-            Line = line;
-        }
-
-        public ByteCodeEntry(int value, int line)
-        {
-            Value = value;
-            IsBytecode = false;
-            Line = line;
-        }
-
-        public override string ToString()
-        {
-            if (IsBytecode)
-            {
-                return string.Format("ByteCode.{0} ({1})", (ByteCode)Value, Value);
-            }
-            else
-            {
-                string s = string.Format("{0} (0x{0:x08})", Value);
-                ByteCodeVariableFlag flag = (ByteCodeVariableFlag)Value & ByteCodeVariableFlag.All;
-                if (flag != ByteCodeVariableFlag.None)
-                    s += $" : {flag}[{Value & ~(int)ByteCodeVariableFlag.All}]";
-                return s;
-            }
-        }
-    }
-
     /// <summary>
     /// Helper class for writing bytecode data.
     /// </summary>
@@ -68,7 +23,7 @@ namespace SoftCircuits.Silk
         public ByteCodeWriter(LexicalAnalyzer lexer)
         {
             // Bytecode size must not change (won't be able to read saved compiled data)
-            Debug.Assert(sizeof(ByteCode) == sizeof(Int32));
+            Debug.Assert(sizeof(OpCode) == sizeof(Int32));
             ByteCodeEntries = new List<ByteCodeEntry>();
             Counters = new List<int>();
             Counters.Add(0);
@@ -80,7 +35,7 @@ namespace SoftCircuits.Silk
         /// Returns the position at which this bytecode is written.
         /// </summary>
         /// <param name="bytecode">Bytecode to write.</param>
-        public int Write(ByteCode bytecode)
+        public int Write(OpCode bytecode)
         {
             int ip = IP;
             ByteCodeEntries.Add(new ByteCodeEntry(bytecode, Lexer.LastTokenLine));
@@ -108,7 +63,7 @@ namespace SoftCircuits.Silk
         /// </summary>
         /// <param name="bytecode">Bytecode to write.</param>
         /// <param name="value">Value to write.</param>
-        public int Write(ByteCode bytecode, int value)
+        public int Write(OpCode bytecode, int value)
         {
             int ip = IP;
             ByteCodeEntries.Add(new ByteCodeEntry(bytecode, Lexer.LastTokenLine));
@@ -123,7 +78,7 @@ namespace SoftCircuits.Silk
         /// </summary>
         /// <param name="ip">Position to write bytecode.</param>
         /// <param name="bytecode">Bytecode to write.</param>
-        public void WriteAt(int ip, ByteCode bytecode)
+        public void WriteAt(int ip, OpCode bytecode)
         {
             Debug.Assert(ip >= 0 && ip < IP);
             Debug.Assert(ByteCodeEntries[ip].IsBytecode);
@@ -135,7 +90,7 @@ namespace SoftCircuits.Silk
         /// Does not affect counter.
         /// </summary>
         /// <param name="ip">Position to write value.</param>
-        /// <param name="byteCode">Value to write.</param>
+        /// <param name="value">Value to write.</param>
         public void WriteAt(int ip, int value)
         {
             Debug.Assert(ip >= 0 && ip < IP);
@@ -213,7 +168,8 @@ namespace SoftCircuits.Silk
         /// <summary>
         /// Dumps the bytecode log to a file.
         /// </summary>
-        /// <param name="path">Name of file that contains the source code.</param>
+        /// <param name="sourcePath">Name of file that contains the source code.</param>
+        /// <param name="logPath">Name of file the log will be written to.</param>
         public void WriteLogFile(string sourcePath, string logPath)
         {
             // Read source file
@@ -238,7 +194,7 @@ namespace SoftCircuits.Silk
                         file.WriteLine("Line {0} : {1}", lastPrintedLine + 1, lines[lastPrintedLine].Trim());
                         lastPrintedLine++;
                     }
-                    file.WriteLine("\t{0:D5}: {1}", i, ByteCodeEntries[i].ToString());
+                    file.WriteLine("\t{0:D5}: {1}", i, ByteCodeEntries[i]);
                 }
                 // Write any trailing lines of source code
                 while (lastPrintedLine < lines.Length)

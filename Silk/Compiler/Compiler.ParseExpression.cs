@@ -1,11 +1,9 @@
-﻿// Copyright (c) 2019-2020 Jonathan Wood (www.softcircuits.com)
-// Licensed under the MIT license.
-//
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using SoftCircuits.Silk;
 
-namespace SoftCircuits.Silk
+namespace Silk.Compiler
 {
     public partial class Compiler
     {
@@ -103,7 +101,7 @@ namespace SoftCircuits.Silk
             {
                 // List creation: a = [20]
                 Writer.Write(1);
-                Writer.Write(ByteCode.EvalCreateList);
+                Writer.Write(ByteCode.OpCode.EvalCreateList);
                 if (!ParseExpression())
                     return false;
                 token = Lexer.GetNext();
@@ -118,7 +116,7 @@ namespace SoftCircuits.Silk
             {
                 // List initialization: a = { "abc", "def" }
                 Writer.Write(1);
-                Writer.Write(ByteCode.EvalInitializeList);
+                Writer.Write(ByteCode.OpCode.EvalInitializeList);
                 tokenCountIP = Writer.Write(0);
 
                 int count = 0;
@@ -191,7 +189,7 @@ namespace SoftCircuits.Silk
                         break;
                     }
                     // Literal operand
-                    Writer.Write(ByteCode.EvalLiteral, GetLiteralId(new Variable(token)));
+                    Writer.Write(ByteCode.OpCode.EvalLiteral, GetLiteralId(new Variable(token)));
                     state = ExpressionState.Operand;
                 }
                 else if (token.Type == TokenType.Symbol)
@@ -209,7 +207,7 @@ namespace SoftCircuits.Silk
                         Lexer.GetNext();
                         // Function call
                         int functionId = GetFunctionId(token.Value);
-                        Writer.Write(ByteCode.EvalFunction, functionId);
+                        Writer.Write(ByteCode.OpCode.EvalFunction, functionId);
                         // Possible recursion!
                         Writer.PushCounter();
                         Function function = Functions[functionId];
@@ -229,7 +227,7 @@ namespace SoftCircuits.Silk
                             Error(ErrorCode.VariableNotDefined, token);
                             return false;
                         }
-                        Writer.Write(ByteCode.EvalListVariable, varId);
+                        Writer.Write(ByteCode.OpCode.EvalListVariable, varId);
                         // Recursion
                         Writer.PushCounter();
                         bool result = ParseExpression();
@@ -252,7 +250,7 @@ namespace SoftCircuits.Silk
                             Error(ErrorCode.VariableNotDefined, token);
                             return false;
                         }
-                        Writer.Write(ByteCode.EvalVariable, varId);
+                        Writer.Write(ByteCode.OpCode.EvalVariable, varId);
                     }
                     state = ExpressionState.Operand;
                 }

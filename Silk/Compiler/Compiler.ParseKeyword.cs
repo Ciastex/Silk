@@ -1,11 +1,11 @@
-﻿// Copyright (c) 2019-2020 Jonathan Wood (www.softcircuits.com)
-// Licensed under the MIT license.
-//
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using Silk.Compiler.ByteCode;
+using SoftCircuits.Silk;
+using ValueType = SoftCircuits.Silk.ValueType;
 
-namespace SoftCircuits.Silk
+namespace Silk.Compiler
 {
     public partial class Compiler
     {
@@ -15,7 +15,7 @@ namespace SoftCircuits.Silk
         /// <remarks>
         /// Contains only keywords that can start a statement.
         /// </remarks>
-        private static readonly Dictionary<Keyword, Action<Compiler, Token>> KeywordParserLookup = new Dictionary<Keyword, Action<Compiler, Token>>
+        private static readonly Dictionary<Keyword, Action<global::Silk.Compiler.Compiler, Token>> KeywordParserLookup = new Dictionary<Keyword, Action<global::Silk.Compiler.Compiler, Token>>
         {
             [Keyword.Var] = (x, t) => x.ParseVar(t),
             [Keyword.GoTo] = (x, t) => x.ParseGoTo(t),
@@ -48,7 +48,7 @@ namespace SoftCircuits.Silk
             }
 
             // Dispatch to keyword parser
-            if (KeywordParserLookup.TryGetValue(token.Keyword, out Action<Compiler, Token> action))
+            if (KeywordParserLookup.TryGetValue(token.Keyword, out Action<global::Silk.Compiler.Compiler, Token> action))
                 action(this, token);
             else
                 Error(ErrorCode.UnexpectedKeyword, token);
@@ -87,7 +87,7 @@ namespace SoftCircuits.Silk
                     if (!ParseLiteral(out Variable variable))
                         return;
                     // Assign value to variable
-                    Variables[ByteCodes.GetVariableIndex(varId)] = variable;
+                    Variables[ByteCodeUtils.GetVariableIndex(varId)] = variable;
                 }
             }
             else
@@ -99,7 +99,7 @@ namespace SoftCircuits.Silk
                 {
                     // Consume equal sign
                     Lexer.GetNext();
-                    Writer.Write(ByteCode.Assign, varId);
+                    Writer.Write(ByteCode.OpCode.Assign, varId);
                     if (!ParseExpression())
                         return;
                 }
@@ -115,7 +115,7 @@ namespace SoftCircuits.Silk
                 return;
             }
             // Do not combine next two write; need IP for ReferenceLabel
-            Writer.Write(ByteCode.Jump);
+            Writer.Write(ByteCode.OpCode.Jump);
             Writer.Write(ReferenceLabel(token.Value));
             VerifyEndOfLine();
         }
@@ -126,7 +126,7 @@ namespace SoftCircuits.Silk
             List<int> breakAddressIPs = new List<int>();
 
             // Write bytecode and false address placeholder
-            Writer.Write(ByteCode.JumpIfFalse);
+            Writer.Write(ByteCode.OpCode.JumpIfFalse);
             int falseAddressIP = Writer.Write(0);
             // Parse condition
             if (!ParseExpression())
@@ -152,7 +152,7 @@ namespace SoftCircuits.Silk
                 }
 
                 // Write bytecodes to exit IF..ELSE block
-                Writer.Write(ByteCode.Jump);
+                Writer.Write(ByteCode.OpCode.Jump);
                 breakAddressIPs.Add(Writer.Write(0));
 
                 // Fixup JumpIfFalse target address
@@ -163,7 +163,7 @@ namespace SoftCircuits.Silk
                 if (token.Keyword == Keyword.If)
                 {
                     // Write bytecode and break address placeholder
-                    Writer.Write(ByteCode.JumpIfFalse);
+                    Writer.Write(ByteCode.OpCode.JumpIfFalse);
                     falseAddressIP = Writer.Write(0);
                     // Parse condition
                     if (!ParseExpression())
@@ -185,7 +185,7 @@ namespace SoftCircuits.Silk
 
         private void ParseWhile(Token token)
         {
-            int loopStartIP = Writer.Write(ByteCode.JumpIfFalse);
+            int loopStartIP = Writer.Write(ByteCode.OpCode.JumpIfFalse);
             int breakAddressIP = Writer.Write(0);
             if (!ParseExpression())
                 return;
@@ -195,7 +195,7 @@ namespace SoftCircuits.Silk
             ParseCodeBlock();
 
             // Write loop bytecodes and final break address
-            Writer.Write(ByteCode.Jump, loopStartIP);
+            Writer.Write(ByteCode.OpCode.Jump, loopStartIP);
             Writer.WriteAt(breakAddressIP, Writer.IP);
         }
 
@@ -218,7 +218,7 @@ namespace SoftCircuits.Silk
                 return;
             }
             // Assign initial value
-            Writer.Write(ByteCode.Assign, varId);
+            Writer.Write(ByteCode.OpCode.Assign, varId);
             if (!ParseExpression())
                 return;
             // Parse TO keyword
@@ -230,15 +230,15 @@ namespace SoftCircuits.Silk
             }
 
             // Write bytecode and break address placeholder
-            int loopStartIP = Writer.Write(ByteCode.JumpIfFalse);
+            int loopStartIP = Writer.Write(ByteCode.OpCode.JumpIfFalse);
             int breakAddressIP = Writer.Write(0);
 
             // Parse TO expression and add logic to compare result to loop variable
-            int compareIP = ByteCodes.InvalidIP;
+            int compareIP = ByteCodeUtils.InvalidIP;
             if (!ParseExpression(true, () =>
             {
-                Writer.Write(ByteCode.EvalVariable, varId);
-                compareIP = Writer.Write(ByteCode.EvalIsGreaterThanOrEqual);
+                Writer.Write(ByteCode.OpCode.EvalVariable, varId);
+                compareIP = Writer.Write(ByteCode.OpCode.EvalIsGreaterThanOrEqual);
             }))
                 return;
 
@@ -264,8 +264,8 @@ namespace SoftCircuits.Silk
                 // Change compare logic if step is negative
                 if (stepLiteral < 0)
                 {
-                    Debug.Assert(compareIP != ByteCodes.InvalidIP);
-                    Writer.WriteAt(compareIP, ByteCode.EvalIsLessThanOrEqual);
+                    Debug.Assert(compareIP != ByteCodeUtils.InvalidIP);
+                    Writer.WriteAt(compareIP, ByteCode.OpCode.EvalIsLessThanOrEqual);
                 }
                 stepId = GetLiteralId(stepLiteral);
             }
@@ -275,20 +275,20 @@ namespace SoftCircuits.Silk
             // Parse loop statements
             ParseCodeBlock();
             // Write step (increment) bytecodes
-            Writer.Write(ByteCode.Assign, varId);
+            Writer.Write(ByteCode.OpCode.Assign, varId);
             Writer.Write(3);   // 3 tokens
-            Writer.Write(ByteCode.EvalVariable, varId);
-            Writer.Write(ByteCode.EvalLiteral, stepId);
-            Writer.Write(ByteCode.EvalAdd);
+            Writer.Write(ByteCode.OpCode.EvalVariable, varId);
+            Writer.Write(ByteCode.OpCode.EvalLiteral, stepId);
+            Writer.Write(ByteCode.OpCode.EvalAdd);
             // Write loop codebytes and fixup break address
-            Writer.Write(ByteCode.Jump, loopStartIP);
+            Writer.Write(ByteCode.OpCode.Jump, loopStartIP);
             Writer.WriteAt(breakAddressIP, Writer.IP);
         }
 
         private void ParseReturn(Token token)
         {
             // Return can optionally be followed by expression
-            Writer.Write(ByteCode.Return);
+            Writer.Write(ByteCode.OpCode.Return);
             if (!ParseExpression(false))
                 Writer.Write(0); // No return tokens
             VerifyEndOfLine();

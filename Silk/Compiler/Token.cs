@@ -1,11 +1,8 @@
-﻿// Copyright (c) 2019-2020 Jonathan Wood (www.softcircuits.com)
-// Licensed under the MIT license.
-//
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 
-namespace SoftCircuits.Silk
+namespace Silk.Compiler
 {
     [Flags]
     internal enum TokenTypeFlag
@@ -112,33 +109,33 @@ namespace SoftCircuits.Silk
         /// <summary>
         /// TokenType to ByteCode lookup. Should include all token types that are operators.
         /// </summary>
-        private static Dictionary<TokenType, ByteCode> ByteCodeLookup = new Dictionary<TokenType, ByteCode>
+        private static Dictionary<TokenType, ByteCode.OpCode> ByteCodeLookup = new Dictionary<TokenType, ByteCode.OpCode>
         {
-            [TokenType.Plus] = ByteCode.EvalAdd,
-            [TokenType.Minus] = ByteCode.EvalSubtract,
-            [TokenType.Multiply] = ByteCode.EvalMultiply,
-            [TokenType.Divide] = ByteCode.EvalDivide,
-            [TokenType.Power] = ByteCode.EvalPower,
-            [TokenType.Modulus] = ByteCode.EvalModulus,
-            [TokenType.Concat] = ByteCode.EvalConcat,
-            [TokenType.UnaryMinus] = ByteCode.EvalNegate,
-            [TokenType.And] = ByteCode.EvalAnd,
-            [TokenType.Or] = ByteCode.EvalOr,
-            [TokenType.Xor] = ByteCode.EvalXor,
-            [TokenType.Not] = ByteCode.EvalNot,
-            [TokenType.Equal] = ByteCode.EvalIsEqual,
-            [TokenType.NotEqual] = ByteCode.EvalIsNotEqual,
-            [TokenType.GreaterThan] = ByteCode.EvalIsGreaterThan,
-            [TokenType.GreaterThanOrEqual] = ByteCode.EvalIsGreaterThanOrEqual,
-            [TokenType.LessThan] = ByteCode.EvalIsLessThan,
-            [TokenType.LessThanOrEqual] = ByteCode.EvalIsLessThanOrEqual,
+            [TokenType.Plus] = ByteCode.OpCode.EvalAdd,
+            [TokenType.Minus] = ByteCode.OpCode.EvalSubtract,
+            [TokenType.Multiply] = ByteCode.OpCode.EvalMultiply,
+            [TokenType.Divide] = ByteCode.OpCode.EvalDivide,
+            [TokenType.Power] = ByteCode.OpCode.EvalPower,
+            [TokenType.Modulus] = ByteCode.OpCode.EvalModulus,
+            [TokenType.Concat] = ByteCode.OpCode.EvalConcat,
+            [TokenType.UnaryMinus] = ByteCode.OpCode.EvalNegate,
+            [TokenType.And] = ByteCode.OpCode.EvalAnd,
+            [TokenType.Or] = ByteCode.OpCode.EvalOr,
+            [TokenType.Xor] = ByteCode.OpCode.EvalXor,
+            [TokenType.Not] = ByteCode.OpCode.EvalNot,
+            [TokenType.Equal] = ByteCode.OpCode.EvalIsEqual,
+            [TokenType.NotEqual] = ByteCode.OpCode.EvalIsNotEqual,
+            [TokenType.GreaterThan] = ByteCode.OpCode.EvalIsGreaterThan,
+            [TokenType.GreaterThanOrEqual] = ByteCode.OpCode.EvalIsGreaterThanOrEqual,
+            [TokenType.LessThan] = ByteCode.OpCode.EvalIsLessThan,
+            [TokenType.LessThanOrEqual] = ByteCode.OpCode.EvalIsLessThanOrEqual,
         };
 
-        public ByteCode GetOperatorByteCode()
+        public ByteCode.OpCode GetOperatorByteCode()
         {
             if (!IsOperator)
                 throw new Exception($"GetOperatorByteCode() called on non-operator ({Type}) token.");
-            if (ByteCodeLookup.TryGetValue(Type, out ByteCode bytecode))
+            if (ByteCodeLookup.TryGetValue(Type, out ByteCode.OpCode bytecode))
                 return bytecode;
             throw new Exception($"GetOperatorByteCode() : No bytecode for operator {Type}");
         }

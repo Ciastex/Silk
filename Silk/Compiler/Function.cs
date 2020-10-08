@@ -1,8 +1,7 @@
-﻿// Copyright (c) 2019-2020 Jonathan Wood (www.softcircuits.com)
-// Licensed under the MIT license.
-//
-using System;
+﻿using System;
 using System.Diagnostics;
+using Silk.Compiler.ByteCode;
+using SoftCircuits.Silk;
 
 /// <summary>
 /// Various representations of functions.
@@ -21,7 +20,8 @@ using System.Diagnostics;
 /// A function defined within the SILK library and made available to the SILK program when
 /// <see cref="Compiler.EnableInternalFunctions"></see> is set to true.
 /// </remarks>
-namespace SoftCircuits.Silk
+
+namespace Silk.Compiler
 {
     /// <summary>
     /// Base class for several function classes. Also defines some function-related

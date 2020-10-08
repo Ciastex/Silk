@@ -1,13 +1,13 @@
-﻿// Copyright (c) 2019-2020 Jonathan Wood (www.softcircuits.com)
-// Licensed under the MIT license.
-//
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using Silk.Compiler.ByteCode;
+using SoftCircuits.Silk;
+using ErrorEventArgs = SoftCircuits.Silk.ErrorEventArgs;
 
-namespace SoftCircuits.Silk
+namespace Silk.Compiler
 {
     public partial class Compiler
     {
@@ -69,7 +69,7 @@ namespace SoftCircuits.Silk
             Functions = new OrderedDictionary<string, Function>(StringComparer.OrdinalIgnoreCase);
             Variables = new OrderedDictionary<string, Variable>(StringComparer.OrdinalIgnoreCase);
             Literals = new List<Variable>();
-            Lexer = new LexicalAnalyzer(this);
+            Lexer = new LexicalAnalyzer();
             Lexer.Error += Lexer_Error;
             Writer = new ByteCodeWriter(Lexer);
             InHeader = true;
@@ -93,10 +93,12 @@ namespace SoftCircuits.Silk
                 Lexer.Reset(File.ReadAllText(path));
                 // Write bytecodes to call function main.
                 // Also causes error if main function is not defined
-                Writer.Write(ByteCode.ExecFunction, GetFunctionId(Function.Main));
+                Writer.Write(OpCode.ExecFunction, GetFunctionId(Function.Main));
                 // Parse statements
                 while (ParseStatement())
-                    ;
+                {
+                }
+
                 // Verify end of file
                 Token token = Lexer.GetNext();
                 if (token.Type != TokenType.EndOfFile)
@@ -198,7 +200,7 @@ namespace SoftCircuits.Silk
                         NextLine();
                         return;
                     }
-                    Writer.Write(ByteCode.AssignListVariable, GetVariableId(token.Value));
+                    Writer.Write(OpCode.AssignListVariable, GetVariableId(token.Value));
                     // Parse list index
                     if (!ParseExpression())
                         return;
@@ -230,7 +232,7 @@ namespace SoftCircuits.Silk
                         NextLine();
                         return;
                     }
-                    Writer.Write(ByteCode.Assign, GetVariableId(token.Value));
+                    Writer.Write(OpCode.Assign, GetVariableId(token.Value));
                     if (!ParseExpression())
                         return;
                     VerifyEndOfLine();
@@ -241,7 +243,7 @@ namespace SoftCircuits.Silk
                         // Function call
                         int functionId = GetFunctionId(token.Value);
                         Function function = Functions[functionId];
-                        Writer.Write(ByteCode.ExecFunction, functionId);
+                        Writer.Write(OpCode.ExecFunction, functionId);
                         // Next token might be part of argument expression
                         Lexer.UngetToken(nextToken);
                         if (!ParseFunctionArguments(function, false))
@@ -276,7 +278,8 @@ namespace SoftCircuits.Silk
 
                         // Parse statements in function
                         while (ParseStatement())
-                            ;
+                        {
+                        }
 
                         token = Lexer.GetNext();
                         if (token.Type != TokenType.RightBrace)
@@ -286,7 +289,7 @@ namespace SoftCircuits.Silk
                         }
 
                         // Write return (no return expression)
-                        Writer.Write(ByteCode.Return, 0);
+                        Writer.Write(OpCode.Return, 0);
 
                         // Check for undefined labels
                         foreach (var labelInfo in function.Labels.GetKeyValuePairs())
@@ -344,6 +347,7 @@ namespace SoftCircuits.Silk
         /// </summary>
         /// <param name="function">Function being called. May be null for user
         /// functions. Used to verify argument count for intrinsic functions.</param>
+        /// <param name="usingParentheses">Whether or not to use parentheses when parsing arguments.</param>
         private bool ParseFunctionArguments(Function function, bool usingParentheses)
         {
             Token token;
@@ -400,7 +404,8 @@ namespace SoftCircuits.Silk
         /// <param name="name">Function name.</param>
         /// <param name="minParameters">Minimum allowed number of parameters.</param>
         /// <param name="maxParameters">Maximum allowed number of parameters.</param>
-        public void RegisterFunction(string name, int minParameters = Function.NoParameterLimit, int maxParameters = Function.NoParameterLimit)
+        public void RegisterFunction(string name, int minParameters = Function.NoParameterLimit,
+            int maxParameters = Function.NoParameterLimit)
         {
             // Validate function name
             if (!Keywords.IsValidSymbolName(name))
@@ -529,7 +534,7 @@ namespace SoftCircuits.Silk
             // Otherwise, log this location for fix up later
             label.FixUpIPs.Add(Writer.IP);
             // Return 0 as a placeholder
-            return ByteCodes.InvalidIP;
+            return ByteCodeUtils.InvalidIP;
         }
 
         /// <summary>
@@ -555,14 +560,19 @@ namespace SoftCircuits.Silk
                 label = new Label(name, ip);
                 CurrentFunction.Labels.Add(name, label);
             }
+            
             // Test if label has already been defined
             // Fix up any forward references
             foreach (int location in label.FixUpIPs)
+            {
+                Debug.Assert(label.IP.HasValue);
                 Writer.WriteAt(location, label.IP.Value);
+            }
+
             label.FixUpIPs.Clear();
         }
 
-        private bool AddUserFunction(string name, CompileTimeUserFunction userFunction)
+        private void AddUserFunction(string name, CompileTimeUserFunction userFunction)
         {
             int index = Functions.IndexOf(name);
             if (index >= 0)
@@ -571,16 +581,15 @@ namespace SoftCircuits.Silk
                 if (Functions[index] == null || Functions[index].IsIntrinsic)
                 {
                     Functions[index] = userFunction;
-                    return true;
+                    return;
                 }
                 else
                 {
                     Error(ErrorCode.DuplicateFunctionName, name);
-                    return false;
+                    return;
                 }
             }
             Functions.Add(name, userFunction);
-            return true;
         }
 
         #endregion
@@ -630,14 +639,13 @@ namespace SoftCircuits.Silk
         /// In either case, this method consumes all tokens up to and including the next
         /// newline.
         /// </summary>
-        private bool VerifyEndOfLine()
+        private void VerifyEndOfLine()
         {
             Token token = Lexer.GetNext();
-            if (token.Type == TokenType.EndOfLine)
-                return true;
+            if (token.Type == TokenType.EndOfLine) return;
+            
             Error(ErrorCode.UnexpectedToken, token);
             NextLine();
-            return false;
         }
 
         /// <summary>
@@ -661,6 +669,5 @@ namespace SoftCircuits.Silk
         }
 
         #endregion
-
     }
 }

@@ -1,10 +1,8 @@
-﻿// Copyright (c) 2019-2020 Jonathan Wood (www.softcircuits.com)
-// Licensed under the MIT license.
-//
-using System;
+﻿using System;
 using System.Collections.Generic;
+using SoftCircuits.Silk;
 
-namespace SoftCircuits.Silk
+namespace Silk.Compiler
 {
     /// <summary>
     /// Converts a string of characters to tokens.
@@ -48,10 +46,10 @@ namespace SoftCircuits.Silk
         //
         public static readonly Dictionary<string, TokenType> SymbolOperatorLookup = new Dictionary<string, TokenType>(StringComparer.OrdinalIgnoreCase)
         {
-            ["and"] = TokenType.And,
-            ["or"] = TokenType.Or,
-            ["xor"] = TokenType.Xor,
-            ["not"] = TokenType.Not,
+            ["&&"] = TokenType.And,
+            ["||"] = TokenType.Or,
+            ["^"] = TokenType.Xor,
+            ["~"] = TokenType.Not,
         };
 
         // Multiline comment terminator
@@ -63,8 +61,7 @@ namespace SoftCircuits.Silk
         public int LastTokenLine;
         public int CurrentLine => LexHelper.Line;
 
-
-        public LexicalAnalyzer(Compiler compiler, string source = null)
+        public LexicalAnalyzer(string source = null)
         {
             LexHelper = new LexicalHelper(this);
             Reset(source);

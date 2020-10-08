@@ -4,6 +4,8 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using Silk.Compiler;
+using Silk.Compiler.ByteCode;
 
 namespace SoftCircuits.Silk
 {
@@ -42,8 +44,8 @@ namespace SoftCircuits.Silk
             OnBegin();
 
             // Initial bytecode is call to main() function
-            ByteCode bytecode = Reader.GetNext();
-            Debug.Assert(bytecode == ByteCode.ExecFunction);
+            OpCode bytecode = Reader.GetNext();
+            Debug.Assert(bytecode == OpCode.ExecFunction);
             int mainId = Reader.GetNextValue();
             Debug.Assert(Functions[mainId] is UserFunction);
             RuntimeFunction function = new RuntimeFunction(Functions[mainId] as UserFunction);
@@ -85,17 +87,17 @@ namespace SoftCircuits.Silk
 
             FunctionStack.Push(function);
             Reader.Push();
-            Debug.Assert(function.IP != ByteCodes.InvalidIP);
+            Debug.Assert(function.IP != ByteCodeUtils.InvalidIP);
             Reader.GoTo(function.IP);
 
             // Dispatch each bytecode to its handler
-            ByteCode bytecode;
+            OpCode bytecode;
             do
             {
                 bytecode = Reader.GetNext();
                 Debug.Assert(ByteCodeHandlerLookup.ContainsKey(bytecode));
                 ByteCodeHandlerLookup[bytecode](this);
-            } while (bytecode != ByteCode.Return);
+            } while (bytecode != OpCode.Return);
 
             FunctionStack.Pop();
             Reader.Pop();
@@ -106,15 +108,15 @@ namespace SoftCircuits.Silk
         /// <summary>
         /// ByteCode dispatch table
         /// </summary>
-        private static readonly Dictionary<ByteCode, Action<Runtime>> ByteCodeHandlerLookup = new Dictionary<ByteCode, Action<Runtime>>
+        private static readonly Dictionary<OpCode, Action<Runtime>> ByteCodeHandlerLookup = new Dictionary<OpCode, Action<Runtime>>
         {
-            [ByteCode.Nop] = r => r.Nop(),
-            [ByteCode.ExecFunction] = r => r.ExecFunction(),
-            [ByteCode.Return] = r => r.Return(),
-            [ByteCode.Jump] = r => r.Jump(),
-            [ByteCode.JumpIfFalse] = r => r.JumpIfFalse(),
-            [ByteCode.Assign] = r => r.Assign(),
-            [ByteCode.AssignListVariable] = r => r.AssignListVariable(),
+            [OpCode.Nop] = r => r.Nop(),
+            [OpCode.ExecFunction] = r => r.ExecFunction(),
+            [OpCode.Return] = r => r.Return(),
+            [OpCode.Jump] = r => r.Jump(),
+            [OpCode.JumpIfFalse] = r => r.JumpIfFalse(),
+            [OpCode.Assign] = r => r.Assign(),
+            [OpCode.AssignListVariable] = r => r.AssignListVariable(),
         };
 
         private void Nop()
@@ -141,7 +143,7 @@ namespace SoftCircuits.Silk
         private void Jump()
         {
             int ip = Reader.GetNextValue();
-            Debug.Assert(ip != ByteCodes.InvalidIP);
+            Debug.Assert(ip != ByteCodeUtils.InvalidIP);
             Reader.GoTo(ip);
         }
 
@@ -184,32 +186,32 @@ namespace SoftCircuits.Silk
         /// <summary>
         /// ByteCode evaluators dispatch table.
         /// </summary>
-        private static readonly Dictionary<ByteCode, Action<Runtime>> EvalHandlerLookup = new Dictionary<ByteCode, Action<Runtime>>
+        private static readonly Dictionary<OpCode, Action<Runtime>> EvalHandlerLookup = new Dictionary<OpCode, Action<Runtime>>
         {
-            [ByteCode.EvalLiteral] = r => r.EvalLiteral(),
-            [ByteCode.EvalVariable] = r => r.EvalVariable(),
-            [ByteCode.EvalCreateList] = r => r.EvalCreateList(),
-            [ByteCode.EvalInitializeList] = r => r.EvalInitializeList(),
-            [ByteCode.EvalListVariable] = r => r.EvalListVariable(),
-            [ByteCode.EvalFunction] = r => r.EvalFunction(),
-            [ByteCode.EvalAdd] = r => r.EvalAdd(),
-            [ByteCode.EvalSubtract] = r => r.EvalSubtract(),
-            [ByteCode.EvalMultiply] = r => r.EvalMultiply(),
-            [ByteCode.EvalDivide] = r => r.EvalDivide(),
-            [ByteCode.EvalPower] = r => r.EvalPower(),
-            [ByteCode.EvalModulus] = r => r.EvalModulus(),
-            [ByteCode.EvalConcat] = r => r.EvalConcat(),
-            [ByteCode.EvalNegate] = r => r.EvalNegate(),
-            [ByteCode.EvalAnd] = r => r.EvalAnd(),
-            [ByteCode.EvalOr] = r => r.EvalOr(),
-            [ByteCode.EvalXor] = r => r.EvalXor(),
-            [ByteCode.EvalNot] = r => r.EvalNot(),
-            [ByteCode.EvalIsEqual] = r => r.EvalIsEqual(),
-            [ByteCode.EvalIsNotEqual] = r => r.EvalIsNotEqual(),
-            [ByteCode.EvalIsGreaterThan] = r => r.EvalIsGreaterThan(),
-            [ByteCode.EvalIsGreaterThanOrEqual] = r => r.EvalIsGreaterThanOrEqual(),
-            [ByteCode.EvalIsLessThan] = r => r.EvalIsLessThan(),
-            [ByteCode.EvalIsLessThanOrEqual] = r => r.EvalIsLessThanOrEqual(),
+            [OpCode.EvalLiteral] = r => r.EvalLiteral(),
+            [OpCode.EvalVariable] = r => r.EvalVariable(),
+            [OpCode.EvalCreateList] = r => r.EvalCreateList(),
+            [OpCode.EvalInitializeList] = r => r.EvalInitializeList(),
+            [OpCode.EvalListVariable] = r => r.EvalListVariable(),
+            [OpCode.EvalFunction] = r => r.EvalFunction(),
+            [OpCode.EvalAdd] = r => r.EvalAdd(),
+            [OpCode.EvalSubtract] = r => r.EvalSubtract(),
+            [OpCode.EvalMultiply] = r => r.EvalMultiply(),
+            [OpCode.EvalDivide] = r => r.EvalDivide(),
+            [OpCode.EvalPower] = r => r.EvalPower(),
+            [OpCode.EvalModulus] = r => r.EvalModulus(),
+            [OpCode.EvalConcat] = r => r.EvalConcat(),
+            [OpCode.EvalNegate] = r => r.EvalNegate(),
+            [OpCode.EvalAnd] = r => r.EvalAnd(),
+            [OpCode.EvalOr] = r => r.EvalOr(),
+            [OpCode.EvalXor] = r => r.EvalXor(),
+            [OpCode.EvalNot] = r => r.EvalNot(),
+            [OpCode.EvalIsEqual] = r => r.EvalIsEqual(),
+            [OpCode.EvalIsNotEqual] = r => r.EvalIsNotEqual(),
+            [OpCode.EvalIsGreaterThan] = r => r.EvalIsGreaterThan(),
+            [OpCode.EvalIsGreaterThanOrEqual] = r => r.EvalIsGreaterThanOrEqual(),
+            [OpCode.EvalIsLessThan] = r => r.EvalIsLessThan(),
+            [OpCode.EvalIsLessThanOrEqual] = r => r.EvalIsLessThanOrEqual(),
         };
 
         /// <summary>
@@ -226,7 +228,7 @@ namespace SoftCircuits.Silk
             // Call handlers for each expression bytecode
             for (int i = 0; i < count; i++)
             {
-                ByteCode bytecode = Reader.GetNext();
+                OpCode bytecode = Reader.GetNext();
                 Debug.Assert(EvalHandlerLookup.ContainsKey(bytecode));
                 EvalHandlerLookup[bytecode](this);
             }
@@ -492,13 +494,13 @@ namespace SoftCircuits.Silk
 
         private Variable GetVariable(int varId)
         {
-            if (ByteCodes.IsGlobalVariable(varId))
-                return Variables[ByteCodes.GetVariableIndex(varId)];
+            if (ByteCodeUtils.IsGlobalVariable(varId))
+                return Variables[ByteCodeUtils.GetVariableIndex(varId)];
             var context = GetFunctionContext();
-            if (ByteCodes.IsLocalVariable(varId))
-                return context.Variables[ByteCodes.GetVariableIndex(varId)];
+            if (ByteCodeUtils.IsLocalVariable(varId))
+                return context.Variables[ByteCodeUtils.GetVariableIndex(varId)];
             // Function parameter
-            return context.Parameters[ByteCodes.GetVariableIndex(varId)];
+            return context.Parameters[ByteCodeUtils.GetVariableIndex(varId)];
         }
 
         private RuntimeFunction GetFunctionContext()

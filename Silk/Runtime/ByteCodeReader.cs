@@ -4,6 +4,8 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using Silk.Compiler;
+using Silk.Compiler.ByteCode;
 
 namespace SoftCircuits.Silk
 {
@@ -29,15 +31,15 @@ namespace SoftCircuits.Silk
 
         public bool EndOfFile => (IP >= ByteCodes.Length);
 
-        public ByteCode GetNext()
+        public OpCode GetNext()
         {
             if (EndOfFile)
                 throw new Exception("Attempted to read beyond the last bytecode");
 #if DEBUG
-            if (!Enum.IsDefined(typeof(ByteCode), ByteCodes[IP]))
+            if (!Enum.IsDefined(typeof(OpCode), ByteCodes[IP]))
                 throw new Exception($"Attempted to read non-bytecode value {ByteCodes[IP]} as bytecode");
 #endif
-            return (ByteCode)ByteCodes[IP++];
+            return (OpCode)ByteCodes[IP++];
         }
 
         public int GetNextValue()

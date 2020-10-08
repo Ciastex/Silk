@@ -1,34 +1,9 @@
-﻿// Copyright (c) 2019-2020 Jonathan Wood (www.softcircuits.com)
-// Licensed under the MIT license.
-//
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 
-namespace SoftCircuits.Silk
+namespace Silk.Compiler
 {
-    /// <summary>
-    /// Enum of supported keywords.
-    /// </summary>
-    internal enum Keyword
-    {
-        NullKeyword,    // Not a keyword
-        Var,
-        GoTo,
-        Return,
-        If,
-        Else,
-        While,
-        For,
-        // Keywords part of other statements/expressions
-        And,
-        Or,
-        Xor,
-        Not,
-        To,
-        Step,
-    }
-
     /// <summary>
     /// Static class for tracking and looking up keywords.
     /// </summary>
