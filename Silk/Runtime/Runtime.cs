@@ -1,13 +1,14 @@
-﻿// Copyright (c) 2019-2020 Jonathan Wood (www.softcircuits.com)
-// Licensed under the MIT license.
-//
+﻿
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using Silk.Compiler;
 using Silk.Compiler.ByteCode;
+using Silk.DataModel;
+using Silk.Utility;
+using Boolean = Silk.Utility.Boolean;
 
-namespace SoftCircuits.Silk
+namespace Silk.Runtime
 {
     public class Runtime
     {

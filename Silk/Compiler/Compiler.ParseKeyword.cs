@@ -2,8 +2,8 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using Silk.Compiler.ByteCode;
-using SoftCircuits.Silk;
-using ValueType = SoftCircuits.Silk.ValueType;
+using Silk.DataModel;
+using ValueType = Silk.DataModel.ValueType;
 
 namespace Silk.Compiler
 {

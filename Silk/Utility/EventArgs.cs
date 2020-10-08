@@ -1,10 +1,8 @@
-﻿// Copyright (c) 2019-2020 Jonathan Wood (www.softcircuits.com)
-// Licensed under the MIT license.
-//
-using System;
+﻿using System;
 using Silk.Compiler;
+using Silk.DataModel;
 
-namespace SoftCircuits.Silk
+namespace Silk.Utility
 {
     public class BeginEventArgs : EventArgs
     {
@@ -24,9 +22,6 @@ namespace SoftCircuits.Silk
         public object UserData { get; set; }
     }
 
-    /// <summary>
-    /// Error event arguments.
-    /// </summary>
     internal class ErrorEventArgs : EventArgs
     {
         public ErrorCode ErrorCode { get; set; }

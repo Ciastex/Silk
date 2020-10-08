@@ -4,8 +4,10 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using Silk.Compiler.ByteCode;
-using SoftCircuits.Silk;
-using ErrorEventArgs = SoftCircuits.Silk.ErrorEventArgs;
+using Silk.DataModel;
+using Silk.Runtime;
+using Silk.Utility;
+using ErrorEventArgs = Silk.Utility.ErrorEventArgs;
 
 namespace Silk.Compiler
 {

@@ -1,9 +1,7 @@
-﻿// Copyright (c) 2019-2020 Jonathan Wood (www.softcircuits.com)
-// Licensed under the MIT license.
-//
-using System;
+﻿using System;
+using Boolean = Silk.Utility.Boolean;
 
-namespace SoftCircuits.Silk
+namespace Silk.DataModel
 {
     internal class StringValue : Value
     {
@@ -21,21 +19,21 @@ namespace SoftCircuits.Silk
 
         public override ValueType Type => ValueType.String;
         public override string ToString() => Value;
-        public override int ToInteger() => int.TryParse(Value, out int value) ? value : 0;
-        public override double ToFloat() => double.TryParse(Value, out double value) ? value : 0.0;
+        public override int ToInteger() => int.TryParse(Value, out var value) ? value : 0;
+        public override double ToFloat() => double.TryParse(Value, out var value) ? value : 0.0;
         public override bool IsFloat() => IsFloat(Value);
 
         public override int GetHashCode()
         {
             unchecked
             {
-                int hash = 17;
+                var hash = 17;
+                
                 hash = hash * 31 + Type.GetHashCode();
                 hash = hash * 31 + Value.GetHashCode();
                 return hash;
             }
         }
-        #region Operations
 
         public override Variable Add(Variable value) => (IsFloat() || value.IsFloat()) ? new Variable(ToFloat() + value.ToFloat()) : new Variable(ToInteger() + value.ToInteger());
         public override Variable Add(string value) => (IsFloat() || IsFloat(value)) ? new Variable(ToFloat() + ToFloat(value)) : new Variable(ToInteger() + ToInteger(value));
@@ -74,10 +72,6 @@ namespace SoftCircuits.Silk
 
         public override Variable Negate() => IsFloat() ? new Variable(-ToFloat()) : new Variable(-ToInteger());
 
-        #endregion
-
-        #region Comparisons
-
         public override bool IsEqual(Variable value) => (Value.CompareTo(value.ToString()) == 0);
         public override bool IsEqual(string value) => (Value.CompareTo(value) == 0);
         public override bool IsEqual(int value) => IsFloat() ? (ToFloat() == value) : (ToInteger() == value);
@@ -115,12 +109,11 @@ namespace SoftCircuits.Silk
         public override bool Equals(Value value)
         {
             var stringValue = value as StringValue;
+            
             if (stringValue == null)
                 return false;
+            
             return Value == stringValue.Value;
         }
-
-        #endregion
-
     }
 }

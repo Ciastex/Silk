@@ -1,27 +1,14 @@
-﻿// Copyright (c) 2019-2020 Jonathan Wood (www.softcircuits.com)
-// Licensed under the MIT license.
-//
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 
-namespace SoftCircuits.Silk
+namespace Silk.DataModel
 {
-    public enum ValueType
-    {
-        String,
-        Integer,
-        Float,
-        List,
-    }
-
-    /// <summary>
-    /// Base class for value types.
-    /// </summary>
     internal abstract class Value
     {
-        public abstract ValueType Type { get; }
         public virtual int ListCount => 1;
         public virtual IEnumerable<Variable> GetList() => Enumerable.Empty<Variable>();
+        
+        public abstract ValueType Type { get; }
         public abstract int ToInteger();
         public abstract double ToFloat();
 
@@ -31,8 +18,6 @@ namespace SoftCircuits.Silk
         /// an integer string.
         /// </summary>
         public virtual bool IsFloat() => false;
-
-        #region Operations
 
         public abstract Variable Add(Variable value);
         public abstract Variable Add(string value);
@@ -70,10 +55,6 @@ namespace SoftCircuits.Silk
         public abstract Variable Concat(double value);
 
         public abstract Variable Negate();
-
-        #endregion
-
-        #region Comparisons
 
         public abstract bool IsEqual(Variable value);
         public abstract bool IsEqual(string value);
@@ -113,12 +94,8 @@ namespace SoftCircuits.Silk
         /// </summary>
         public abstract bool Equals(Value value);
 
-        #endregion
-
-        #region Helper methods
-
-        protected double ToFloat(string s) => double.TryParse(s, out double result) ? result : 0.0;
-        protected int ToInteger(string s) => int.TryParse(s, out int result) ? result : 0;
+        protected double ToFloat(string s) => double.TryParse(s, out var result) ? result : 0.0;
+        protected int ToInteger(string s) => int.TryParse(s, out var result) ? result : 0;
 
         /// <summary>
         /// Returns true if the given string contains a double value. Returns false
@@ -128,12 +105,9 @@ namespace SoftCircuits.Silk
         /// <returns></returns>
         protected bool IsFloat(string s)
         {
-            if (double.TryParse(s, out double result))
+            if (double.TryParse(s, out _))
                 return s.Contains('.');
             return false;
         }
-
-        #endregion
-
     }
 }

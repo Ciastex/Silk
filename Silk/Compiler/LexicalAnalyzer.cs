@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using SoftCircuits.Silk;
+using Silk.Utility;
 
 namespace Silk.Compiler
 {

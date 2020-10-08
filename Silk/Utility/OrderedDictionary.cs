@@ -1,16 +1,9 @@
-﻿// Copyright (c) 2019-2020 Jonathan Wood (www.softcircuits.com)
-// Licensed under the MIT license.
-//
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace SoftCircuits.Silk
+namespace Silk.Utility
 {
-    /// <summary>
-    /// Implements a dictionary that also manages an ordered, indexable
-    /// list of its items.
-    /// </summary>
     /// <remarks>
     /// To minimize data duplication, only the index into the list is stored
     /// in the dictionary with the key.

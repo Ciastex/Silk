@@ -1,13 +1,9 @@
-﻿// Copyright (c) 2019-2020 Jonathan Wood (www.softcircuits.com)
-// Licensed under the MIT license.
-//
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using Silk.Compiler;
 using Silk.Compiler.ByteCode;
 
-namespace SoftCircuits.Silk
+namespace Silk.Runtime
 {
     /// <summary>
     /// Helper class for reading bytecode data.

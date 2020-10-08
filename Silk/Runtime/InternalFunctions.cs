@@ -1,14 +1,15 @@
-﻿// Copyright (c) 2019-2020 Jonathan Wood (www.softcircuits.com)
-// Licensed under the MIT license.
-//
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using Silk.Compiler;
+using Silk.DataModel;
+using Silk.Utility;
+using Boolean = Silk.Utility.Boolean;
+using ValueType = Silk.DataModel.ValueType;
 
-namespace SoftCircuits.Silk
+namespace Silk.Runtime
 {
     internal class InternalFunctionInfo
     {
@@ -78,20 +79,20 @@ namespace SoftCircuits.Silk
         public static void AddInternalFunctionsAndVariables(OrderedDictionary<string, Function> functions, OrderedDictionary<string, Variable> variables)
         {
             // Add internal functions (don't override host app's functions)
-            foreach (var key in InternalFunctions.InternalFunctionLookup.Keys)
+            foreach (var key in InternalFunctionLookup.Keys)
             {
                 if (!functions.ContainsKey(key))
                 {
-                    var info = InternalFunctions.InternalFunctionLookup[key];
+                    var info = InternalFunctionLookup[key];
                     functions.Add(key, new InternalFunction(key, info.Action, info.MinParameters, info.MaxParameters));
                 }
             }
             // Add internal variables (don't override host app's variables)
-            foreach (var key in InternalFunctions.InternalVariableLookup.Keys)
+            foreach (var key in InternalVariableLookup.Keys)
             {
                 if (!variables.ContainsKey(key))
                 {
-                    var v = InternalFunctions.InternalVariableLookup[key];
+                    var v = InternalVariableLookup[key];
                     variables.Add(key, new Variable(v));
                 }
             }

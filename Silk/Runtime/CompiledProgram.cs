@@ -1,14 +1,13 @@
-﻿// Copyright (c) 2019-2020 Jonathan Wood (www.softcircuits.com)
-// Licensed under the MIT license.
-//
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using Silk.Compiler;
+using Silk.DataModel;
+using ValueType = Silk.DataModel.ValueType;
 
-namespace SoftCircuits.Silk
+namespace Silk.Runtime
 {
     public class CompiledProgram
     {
@@ -44,17 +43,12 @@ namespace SoftCircuits.Silk
             LineNumbers = null;
         }
 
-        public bool IsEmpty
-        {
-            get
-            {
-                return ByteCodes == null ||
-                    ByteCodes.Length == 0 ||
-                    Functions == null ||
-                    Variables == null ||
-                    Literals == null;
-            }
-        }
+        public bool IsEmpty =>
+            ByteCodes == null ||
+            ByteCodes.Length == 0 ||
+            Functions == null ||
+            Variables == null ||
+            Literals == null;
 
         internal int[] GetByteCodes() => ByteCodes;
         internal Function[] GetFunctions() => Functions;

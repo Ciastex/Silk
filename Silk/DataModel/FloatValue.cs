@@ -1,9 +1,7 @@
-﻿// Copyright (c) 2019-2020 Jonathan Wood (www.softcircuits.com)
-// Licensed under the MIT license.
-//
-using System;
+﻿using System;
+using Boolean = Silk.Utility.Boolean;
 
-namespace SoftCircuits.Silk
+namespace Silk.DataModel
 {
     internal class FloatValue : Value
     {
@@ -41,8 +39,6 @@ namespace SoftCircuits.Silk
             }
         }
 
-        #region Operations
-
         public override Variable Add(Variable value) => new Variable(Value + value.ToFloat());
         public override Variable Add(string value) => new Variable(Value + ToFloat(value));
         public override Variable Add(int value) => new Variable(Value + value);
@@ -79,10 +75,6 @@ namespace SoftCircuits.Silk
         public override Variable Concat(double value) => new Variable(ToString() + value.ToString());
 
         public override Variable Negate() => new Variable(-Value);
-
-        #endregion
-
-        #region Comparisons
 
         public override bool IsEqual(Variable value) => (Value == value.ToFloat());
         public override bool IsEqual(string value) => (Value == (double.TryParse(value, out double result) ? result : 0.0));
@@ -125,7 +117,5 @@ namespace SoftCircuits.Silk
                 return false;
             return Value == floatValue.Value;
         }
-
-        #endregion
     }
 }

@@ -1,11 +1,7 @@
-﻿// Copyright (c) 2019-2020 Jonathan Wood (www.softcircuits.com)
-// Licensed under the MIT license.
-//
-using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 
-namespace SoftCircuits.Silk
+namespace Silk.DataModel
 {
     internal class ListValue : Value
     {
@@ -19,14 +15,15 @@ namespace SoftCircuits.Silk
         public ListValue(int size)
         {
             Value = new List<Variable>(size);
-            for (int i = 0; i < size; i++)
+            
+            for (var i = 0; i < size; i++)
                 Value.Add(new Variable());
         }
 
         public ListValue(IEnumerable<Variable> values)
         {
             Value = new List<Variable>(values.Count());
-            foreach (Variable value in values)
+            foreach (var value in values)
                 Value.Add(new Variable(value));
         }
 
@@ -51,8 +48,6 @@ namespace SoftCircuits.Silk
 
         public Variable GetAt(int index) => IsValidIndex(index) ? Value[index] : new Variable();
         public bool IsValidIndex(int index) => index >= 0 && index < Value.Count;
-
-        #region Operations
 
         public override Variable Add(Variable value) => (Value.Count > 0) ? Value[0].Add(value) : new Variable();
         public override Variable Add(string value) => (Value.Count > 0) ? Value[0].Add(value) : new Variable();
@@ -91,10 +86,6 @@ namespace SoftCircuits.Silk
 
         public override Variable Negate() => (Value.Count > 0) ? Value[0].Negate() : new Variable();
 
-        #endregion
-
-        #region Comparisons
-
         public override bool IsEqual(Variable value) => (Value.Count > 0) ? Value[0].IsEqual(value) : false;
         public override bool IsEqual(string value) => (Value.Count > 0) ? Value[0].IsEqual(value) : false;
         public override bool IsEqual(int value) => (Value.Count > 0) ? Value[0].IsEqual(value) : false;
@@ -132,12 +123,11 @@ namespace SoftCircuits.Silk
         public override bool Equals(Value value)
         {
             var arrayValue = value as ListValue;
+            
             if (arrayValue == null)
                 return false;
+            
             return Value == arrayValue.Value;
         }
-
-        #endregion
-
     }
 }

@@ -1,13 +1,7 @@
-﻿// Copyright (c) 2019-2020 Jonathan Wood (www.softcircuits.com)
-// Licensed under the MIT license.
-//
-using System;
+﻿using System;
 
-namespace SoftCircuits.Silk
+namespace Silk.Utility
 {
-    /// <summary>
-    /// Support for SILK language Boolean values.
-    /// </summary>
     /// <remarks>
     /// Like older compiled BASICs (and unlike C#), this language has only one version of
     /// AND, OR, etc. operators, and they are all bitwise operators. So when using them

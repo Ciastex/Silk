@@ -1,7 +1,8 @@
 ﻿using System;
 using System.Diagnostics;
 using Silk.Compiler.ByteCode;
-using SoftCircuits.Silk;
+using Silk.DataModel;
+using Silk.Utility;
 
 /// <summary>
 /// Various representations of functions.

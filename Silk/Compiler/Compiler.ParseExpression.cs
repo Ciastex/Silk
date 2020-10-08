@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using SoftCircuits.Silk;
+using Silk.DataModel;
 
 namespace Silk.Compiler
 {
